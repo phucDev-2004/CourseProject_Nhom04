@@ -1,10 +1,25 @@
-#ifndef PRIORITYQUEUE_H
-#define PRIORITYQUEUE_H
+#pragma once
+#include "Request.h"
+#include <iostream>
 
-#include "Structs.h"
+class PriorityQueue
+{
+private:
+    Request *heap;   // Mảng lưu danh sách khách chờ
+    int capacity;    // Sức chứa tối đa của sảnh
+    int currentSize; // Số khách đang chờ
 
-void enqueue(Passenger p);
-Passenger dequeue();
-bool isEmpty();
+    void swap(Request &a, Request &b);
+    void heapifyUp(int index);
+    void heapifyDown(int index);
 
-#endif
+public:
+    PriorityQueue(int cap);
+    ~PriorityQueue();
+
+    void push(Request req);
+    Request pop();
+    bool isEmpty();
+    void display();   // Hien thi danh sach cho thang
+    int size();       // So khach dang cho
+};

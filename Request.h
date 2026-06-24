@@ -11,11 +11,11 @@ class Request
 {
 public:
     int id;
-    int tangDen;
-    int tangDoi;
+    int tangGoi;  // Tầng gọi (nơi khách đang đứng chờ)
+    int tangDen;  // Tầng đến (nơi khách muốn tới)
     Huong huong;
     int canNang;
 
     Request();
-    Request(int id, int tangDen, int tangDoi, int canNang);
+    Request(int id, int tangGoi, int tangDen, int canNang);
 };

@@ -3,22 +3,22 @@
 Request::Request()
 {
     id = 0;
+    tangGoi = 0;
     tangDen = 0;
-    tangDoi = 0;
     huong = DUNG_YEN;
     canNang = 0;
 }
 
-Request::Request(int id, int tangDen, int tangDoi, int canNang)
+Request::Request(int id, int tangGoi, int tangDen, int canNang)
 {
     this->id = id;
+    this->tangGoi = tangGoi;
     this->tangDen = tangDen;
-    this->tangDoi = tangDoi;
     this->canNang = canNang;
 
-    if (tangDen > tangDoi)
+    if (tangGoi < tangDen)
         huong = LEN;
-    else if (tangDen < tangDoi)
+    else if (tangGoi > tangDen)
         huong = XUONG;
     else
         huong = DUNG_YEN;

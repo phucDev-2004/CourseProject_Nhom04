@@ -1,10 +1,26 @@
-#ifndef ELEVATOR_H
-#define ELEVATOR_H
+#pragma once
+#include "Request.h"
+#include "LinkedList.h"
+#include <iostream>
 
-#include "Structs.h"
+using namespace std;
 
-void addPassenger(Elevator &e, Passenger p);
-void removePassenger(Elevator &e, int floor);
-bool checkWeight(Elevator &e, Passenger p);
+class Elevator
+{
+public:
+    int currentFloor;
+    int maxCapacity;
+    float currentWeight;
+    Huong currentDir;
 
-#endif
+    LinkedList cabinPassengers;
+
+    Elevator();
+    Elevator(int maxCapacity, int initFloor);
+
+    bool checkWeight(int weight);
+    void addPassenger(Request request);
+    void removePassenger(int tangDen);
+    void move();
+    void displayStatus();
+};

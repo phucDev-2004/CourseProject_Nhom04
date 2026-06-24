@@ -23,6 +23,30 @@ LinkedList::~LinkedList()
     }
 }
 
+bool LinkedList::hasTargetAbove(int currentFloor)
+{
+    Node *temp = head;
+    while (temp != nullptr)
+    {
+        if (temp->data.tangDen > currentFloor)
+            return true;
+        temp = temp->next;
+    }
+    return false;
+}
+
+bool LinkedList::hasTargetBelow(int currentFloor)
+{
+    Node *temp = head;
+    while (temp != nullptr)
+    {
+        if (temp->data.tangDen < currentFloor)
+            return true;
+        temp = temp->next;
+    }
+    return false;
+}
+
 void LinkedList::insert(Request request)
 {
     Node *newNode = new Node(request);
@@ -31,31 +55,34 @@ void LinkedList::insert(Request request)
     currentSize++;
 }
 
-void LinkedList::remove(int tangDen)
+int LinkedList::remove(int tangDen)
 {
-    // Nếu node cần xóa là node đầu tiên
+    int weightLost = 0;
+
+    // 1. Node cần xóa là node đầu tiên
     while (head != nullptr && head->data.tangDen == tangDen)
     {
         Node *temp = head;
+        weightLost += temp->data.canNang;
         head = head->next;
         delete temp;
         currentSize--;
-        return;
     }
 
+    // 1. Node cần xóa là node ở giữa hoặc cuối danh sách
     if (head != nullptr)
     {
         Node *current = head;
         while (current->next != nullptr)
         {
-            Node *nextNode = current->next;
-
-            if (nextNode->data.tangDen == tangDen)
+            if (current->next->data.tangDen == tangDen)
             {
-                current->next = nextNode->next;
-                delete nextNode;
+                Node *temp = current->next;
+                weightLost += temp->data.canNang;
+
+                current->next = temp->next;
+                delete temp;
                 currentSize--;
-                return;
             }
             else
             {
@@ -63,6 +90,7 @@ void LinkedList::remove(int tangDen)
             }
         }
     }
+    return weightLost;
 }
 
 // Kiểm tra danh sách liên kết có rỗng hay không
@@ -82,9 +110,10 @@ void LinkedList::display()
 
     while (temp != nullptr)
     {
-        cout << "Khach den tang " << temp->data.tangDen
-             << ", di tang " << temp->data.tangDoi
-             << ", can nang " << temp->data.canNang << endl;
+        cout << "Khach ID " << temp->data.id
+             << " | Goi tang " << temp->data.tangGoi
+             << " -> Den tang " << temp->data.tangDen
+             << " | Can nang: " << temp->data.canNang << " kg" << endl;
         temp = temp->next;
     }
     cout << endl;

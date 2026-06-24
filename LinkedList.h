@@ -24,7 +24,9 @@ public:
     ~LinkedList();
 
     void insert(Request request);
-    void remove(int tangDen);
+    int remove(int tangDen);
     bool isEmpty();
     void display();
+    bool hasTargetAbove(int currentFloor);
+    bool hasTargetBelow(int currentFloor);
 };
