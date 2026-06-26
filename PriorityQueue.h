@@ -1,10 +1,55 @@
-#ifndef PRIORITYQUEUE_H
-#define PRIORITYQUEUE_H
+#ifndef ELEVATOR_H
+#define ELEVATOR_H
 
-#include "Structs.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cmath>
 
-void enqueue(Passenger p);
-Passenger dequeue();
-bool isEmpty();
+using namespace std;
+
+struct Request
+{
+    string maYC;
+    int tangGoi;
+    int tangDen;
+    int priority;
+};
+
+struct Node
+{
+    Request data;
+    Node* next;
+};
+
+struct PriorityQueue
+{
+    Node* front;
+};
+
+void initQueue(PriorityQueue& q);
+
+bool isEmpty(PriorityQueue q);
+
+void enqueue(PriorityQueue& q,
+             string maYC,
+             int tangGoi,
+             int tangDen,
+             int currentFloor);
+
+bool dequeue(PriorityQueue& q,
+             Request& x);
+
+void display(PriorityQueue q);
+
+void loadFromFile(PriorityQueue& q,
+                  string filename,
+                  int currentFloor);
+
+void processNextRequest(PriorityQueue& q,
+                        int& currentFloor);
+
+void processAll(PriorityQueue& q,
+                int& currentFloor);
 
 #endif
