@@ -100,7 +100,7 @@ void runFromFile(const string &filename)
 
     ElevatorSystem sys(maxCapacity, initFloor);
 
-    cout << "\n  [1] THEM YEU CAU VAO HANG DOI UU TIEN (Min-Heap theo tang goi):\n";
+    cout << "\n  [1] THEM YEU CAU VAO HANG DOI UU TIEN (UpQueue & DownQueue):\n";
     printLine('-', 60);
     for (int i = 0; i < count; i++)
     {
@@ -122,7 +122,11 @@ void runFromFile(const string &filename)
     printLine('-', 60);
     sys.processRequests();
 
-    cout << "\n  [5] TRANG THAI SAU KHI HOAN THANH:\n";
+    cout << "\n  [5] DANH SACH DIEM TRA KHACH SAU KHI HOAN THANH:\n";
+    printLine('-', 60);
+    sys.displayDropOffList();
+
+    cout << "\n  [6] TRANG THAI SAU KHI HOAN THANH:\n";
     sys.displayStatus();
 }
 
@@ -132,7 +136,7 @@ int main()
     printTitle("HE THONG QUAN LY THANG MAY - NHOM 04");
     cout << "\n  CAU TRUC DU LIEU SU DUNG:\n";
     cout << "    [1] LinkedList    - Luu hanh khach trong cabin thang may\n";
-    cout << "    [2] PriorityQueue - Hang doi uu tien (Min-Heap theo tang goi)\n\n";
+    cout << "    [2] PriorityQueue - UpQueue (Min-Heap) & DownQueue (Max-Heap)\n\n";
 
     // ---- Menu chon file ----
     cout << "  CHON FILE DU LIEU:\n";

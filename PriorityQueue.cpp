@@ -1,10 +1,11 @@
 #include "PriorityQueue.h"
 
-PriorityQueue::PriorityQueue(int cap)
+PriorityQueue::PriorityQueue(int cap, bool isMin)
 {
     capacity = cap;
     currentSize = 0;
     heap = new Request[capacity];
+    isMinHeap = isMin;
 }
 
 PriorityQueue::~PriorityQueue()
@@ -25,29 +26,44 @@ void PriorityQueue::heapifyUp(int index)
     if (index == 0)
         return;
     int parent = (index - 1) / 2;
-    if (heap[index].tangGoi < heap[parent].tangGoi)
-    {
-        swap(heap[index], heap[parent]);
-        heapifyUp(parent);
+    if (isMinHeap) {
+        if (heap[index].tangGoi < heap[parent].tangGoi)
+        {
+            swap(heap[index], heap[parent]);
+            heapifyUp(parent);
+        }
+    } else {
+        if (heap[index].tangGoi > heap[parent].tangGoi)
+        {
+            swap(heap[index], heap[parent]);
+            heapifyUp(parent);
+        }
     }
 }
 
 // đẩy khách xuống khi đã lấy người ưu tiên ra
 void PriorityQueue::heapifyDown(int index)
 {
-    int smallest = index;
+    int extreme = index;
     int left = 2 * index + 1;
     int right = 2 * index + 2;
 
-    if (left < currentSize && heap[left].tangGoi < heap[smallest].tangGoi)
-        smallest = left;
-    if (right < currentSize && heap[right].tangGoi < heap[smallest].tangGoi)
-        smallest = right;
+    if (isMinHeap) {
+        if (left < currentSize && heap[left].tangGoi < heap[extreme].tangGoi)
+            extreme = left;
+        if (right < currentSize && heap[right].tangGoi < heap[extreme].tangGoi)
+            extreme = right;
+    } else {
+        if (left < currentSize && heap[left].tangGoi > heap[extreme].tangGoi)
+            extreme = left;
+        if (right < currentSize && heap[right].tangGoi > heap[extreme].tangGoi)
+            extreme = right;
+    }
 
-    if (smallest != index)
+    if (extreme != index)
     {
-        swap(heap[index], heap[smallest]);
-        heapifyDown(smallest);
+        swap(heap[index], heap[extreme]);
+        heapifyDown(extreme);
     }
 }
 
@@ -69,6 +85,12 @@ Request PriorityQueue::pop()
     currentSize--;
     heapifyDown(0);
     return root;
+}
+
+Request PriorityQueue::top()
+{
+    if (isEmpty()) return Request(-1, -1, -1, 0);
+    return heap[0];
 }
 
 bool PriorityQueue::isEmpty()
@@ -94,13 +116,23 @@ void PriorityQueue::display()
     for (int i = 0; i < currentSize; i++)
         temp[i] = heap[i];
     for (int i = 0; i < currentSize - 1; i++)
-        for (int j = i + 1; j < currentSize; j++)
-            if (temp[j].tangGoi < temp[i].tangGoi)
-            {
-                Request t = temp[i];
-                temp[i] = temp[j];
-                temp[j] = t;
+        for (int j = i + 1; j < currentSize; j++) {
+            if (isMinHeap) {
+                if (temp[j].tangGoi < temp[i].tangGoi)
+                {
+                    Request t = temp[i];
+                    temp[i] = temp[j];
+                    temp[j] = t;
+                }
+            } else {
+                if (temp[j].tangGoi > temp[i].tangGoi)
+                {
+                    Request t = temp[i];
+                    temp[i] = temp[j];
+                    temp[j] = t;
+                }
             }
+        }
     for (int i = 0; i < currentSize; i++)
     {
         std::string huongStr = (temp[i].huong == LEN) ? "LEN [^]" : "XUONG [v]";

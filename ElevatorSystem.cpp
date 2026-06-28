@@ -13,13 +13,14 @@ static void esLine(char c = '-', int len = 60)
 }
 
 ElevatorSystem::ElevatorSystem(int maxCapacity, int initFloor)
-    : elevator(maxCapacity, initFloor), requestQueue(100)
+    : elevator(maxCapacity, initFloor), upQueue(100, true), downQueue(100, false)
 {
 }
 
 void ElevatorSystem::addRequest(Request req)
 {
-    requestQueue.push(req);
+    if (req.huong == LEN) upQueue.push(req);
+    else downQueue.push(req);
     string huongStr = (req.huong == LEN) ? "LEN [^]" : "XUONG [v]";
     cout << "  [+] Da them: Khach #" << req.id
          << " | Tang goi: " << req.tangGoi
@@ -31,56 +32,38 @@ void ElevatorSystem::addRequest(Request req)
 void ElevatorSystem::displayQueue()
 {
     cout << "  DANH SACH CHO THANG MAY:\n";
-    requestQueue.display();
-    cout << "  Tong so khach dang cho: " << requestQueue.size() << "\n";
+    cout << "  [+] HANG DOI DI LEN (UpQueue):\n";
+    upQueue.display();
+    cout << "  [+] HANG DOI DI XUONG (DownQueue):\n";
+    downQueue.display();
+    cout << "  Tong so khach dang cho: " << (upQueue.size() + downQueue.size()) << "\n";
+}
+
+void ElevatorSystem::displayDropOffList()
+{
+    cout << "  DANH SACH DIEM TRA KHACH (Hanh khach trong cabin):\n";
+    if (elevator.cabinPassengers.isEmpty()) {
+        cout << "  [Thang may dang trong - khong co ai can tra]\n";
+    } else {
+        elevator.cabinPassengers.display();
+    }
 }
 
 void ElevatorSystem::processRequests()
 {
-    // 1. Lấy tất cả yêu cầu từ hàng đợi ra mảng de de dang duyet
-    Request pending[100];
-    int pCount = 0;
-    while (!requestQueue.isEmpty())
-    {
-        pending[pCount++] = requestQueue.pop();
-    }
-
-    elevator.currentDir = LEN; // Mac dinh ban dau di len
-    cout << "\n  --- BAT DAU LO TRINH THANG MAY (Uu tien Priority Queue + Thuật toán LOOK) ---\n";
+    elevator.currentDir = LEN; // Thuat toan LOOK: mac dinh bat dau di len
+    cout << "\n  --- BAT DAU LO TRINH THANG MAY (Thuat toan LOOK - 2 QUEUE) ---\n";
     cout << string(60, '-') << "\n";
+
+    PriorityQueue pendingUp(100, true);
+    PriorityQueue pendingDown(100, false);
+    PriorityQueue rejectedReqs(100, true); // De chung nhe, vi luc push lai se kiem tra huong
 
     while (true)
     {
         bool actionTaken = false;
 
-        // 1. CHẾ ĐỘ FETCH: Nếu thang rỗng, đi thẳng tới đón khách ưu tiên cao nhất (tangGoi nhỏ nhất)
-        if (elevator.cabinPassengers.isEmpty()) {
-            int nextReq = -1;
-            for (int i = 0; i < pCount; i++) {
-                if (pending[i].id != -1) {
-                    nextReq = i;
-                    break;
-                }
-            }
-            
-            if (nextReq == -1) break; // Hoan tat tat ca!
-
-            if (elevator.currentFloor > pending[nextReq].tangGoi) {
-                elevator.currentDir = XUONG;
-                if (!actionTaken) cout << "     (Di qua tang " << elevator.currentFloor << ")\n";
-                elevator.move();
-                continue; // Đi thẳng, không đón ai dọc đường để đảm bảo tính Priority Queue
-            } else if (elevator.currentFloor < pending[nextReq].tangGoi) {
-                elevator.currentDir = LEN;
-                if (!actionTaken) cout << "     (Di qua tang " << elevator.currentFloor << ")\n";
-                elevator.move();
-                continue; // Đi thẳng, không đón ai dọc đường
-            } else {
-                elevator.currentDir = pending[nextReq].huong;
-            }
-        }
-
-        // 2. Trả khách
+        // 1. Kiểm tra trả khách
         int weightLost = elevator.cabinPassengers.remove(elevator.currentFloor);
         if (weightLost > 0)
         {
@@ -91,59 +74,90 @@ void ElevatorSystem::processRequests()
             actionTaken = true;
         }
 
+        // 2. Day khach dang cho o tang khac vao Pending de lay khach dung tang
+        if (elevator.currentDir == LEN) {
+            while (!upQueue.isEmpty() && upQueue.top().tangGoi < elevator.currentFloor) {
+                pendingUp.push(upQueue.pop());
+            }
+        } else {
+            while (!downQueue.isEmpty() && downQueue.top().tangGoi > elevator.currentFloor) {
+                pendingDown.push(downQueue.pop());
+            }
+        }
+
         // 3. Đón khách
         bool picked = false;
-        for (int i = 0; i < pCount; i++)
-        {
-            if (pending[i].id != -1 && pending[i].tangGoi == elevator.currentFloor)
-            {
-                // CHỈ đón nếu khách CÙNG HƯỚNG với thang máy
-                if (pending[i].huong == elevator.currentDir)
-                {
-                    if (elevator.checkWeight(pending[i].canNang))
-                    {
-                        elevator.addPassenger(pending[i]);
-                        pending[i].id = -1; // Danh dau da don
-                        picked = true;
-                        actionTaken = true;
-                    }
+        if (elevator.currentDir == LEN) {
+            while (!upQueue.isEmpty() && upQueue.top().tangGoi == elevator.currentFloor) {
+                Request req = upQueue.pop();
+                if (elevator.checkWeight(req.canNang)) {
+                    elevator.addPassenger(req);
+                    picked = true;
+                    actionTaken = true;
+                } else {
+                    cout << "  [!!!] Thang may qua tai! Tam thoi chua don khach #" << req.id 
+                         << ". Khach tiep tuc cho o tang " << req.tangGoi << ".\n";
+                    rejectedReqs.push(req);
                 }
             }
+        } else {
+            while (!downQueue.isEmpty() && downQueue.top().tangGoi == elevator.currentFloor) {
+                Request req = downQueue.pop();
+                if (elevator.checkWeight(req.canNang)) {
+                    elevator.addPassenger(req);
+                    picked = true;
+                    actionTaken = true;
+                } else {
+                    cout << "  [!!!] Thang may qua tai! Tam thoi chua don khach #" << req.id 
+                         << ". Khach tiep tuc cho o tang " << req.tangGoi << ".\n";
+                    rejectedReqs.push(req);
+                }
+            }
+        }
+
+        // Tra khach bi tu choi do qua tai ve lai hang doi
+        while (!rejectedReqs.isEmpty()) {
+            Request r = rejectedReqs.pop();
+            if (r.huong == LEN) upQueue.push(r);
+            else downQueue.push(r);
         }
 
         if (picked)
         {
-            cout << "     Danh sach trong thang hien tai:\n";
+            cout << "     [+] Danh sach hanh khach trong thang:\n";
             elevator.cabinPassengers.display();
         }
 
-        // 4. Tính toán hướng đi tiếp theo (Chỉ áp dụng khi thang có người - Thuật toán SCAN/LOOK)
-        if (!elevator.cabinPassengers.isEmpty()) {
-            bool needToGoUp = elevator.cabinPassengers.hasTargetAbove(elevator.currentFloor);
-            bool needToGoDown = elevator.cabinPassengers.hasTargetBelow(elevator.currentFloor);
-            
-            // Nhìn phía trước xem có khách gọi CÙNG HƯỚNG không
-            for (int i = 0; i < pCount; i++) {
-                if (pending[i].id != -1 && pending[i].huong == elevator.currentDir) {
-                    if (elevator.currentDir == LEN && pending[i].tangGoi > elevator.currentFloor) needToGoUp = true;
-                    if (elevator.currentDir == XUONG && pending[i].tangGoi < elevator.currentFloor) needToGoDown = true;
-                }
-            }
+        // 4. Kiem tra xem co the tiep tuc di tiep hay doi huong
+        bool needToGoUp = elevator.cabinPassengers.hasTargetAbove(elevator.currentFloor) 
+                       || !upQueue.isEmpty() 
+                       || (!pendingDown.isEmpty() && pendingDown.top().tangGoi > elevator.currentFloor);
+                       
+        bool needToGoDown = elevator.cabinPassengers.hasTargetBelow(elevator.currentFloor) 
+                         || !downQueue.isEmpty() 
+                         || (!pendingUp.isEmpty() && pendingUp.top().tangGoi < elevator.currentFloor);
 
-            if (elevator.currentDir == LEN && !needToGoUp) {
-                elevator.currentDir = XUONG; // Quay dau xuong
-                cout << "\n  ============================================================";
-                cout << "\n  [!] THANG MAY DOI HUONG: [ XUONG v ] (Do khong con ai phia tren)";
-                cout << "\n  ============================================================\n";
-            } else if (elevator.currentDir == XUONG && !needToGoDown) {
-                elevator.currentDir = LEN; // Quay dau len
-                cout << "\n  ============================================================";
-                cout << "\n  [!] THANG MAY DOI HUONG: [ LEN ^ ] (Do khong con ai phia duoi)";
-                cout << "\n  ============================================================\n";
-            }
-        } else {
-            // Thang vừa trả khách xong và rỗng -> vòng lặp sau sẽ tự động fetch khách ưu tiên nhất.
-            continue; 
+        // Kiem tra stop hoan toan
+        if (!needToGoUp && !needToGoDown && pendingUp.isEmpty() && pendingDown.isEmpty() && elevator.cabinPassengers.isEmpty()) {
+            break; // Hoan tat
+        }
+
+        if (elevator.currentDir == LEN && !needToGoUp) {
+            elevator.currentDir = XUONG;
+            cout << "\n  ============================================================";
+            cout << "\n  [!] THANG MAY DOI HUONG: [ XUONG v ] tai TANG " << elevator.currentFloor << " (Do khong con ai phia tren)";
+            cout << "\n  ============================================================\n";
+            // Gop pendingDown vao downQueue
+            while (!pendingDown.isEmpty()) downQueue.push(pendingDown.pop());
+            continue; // Quay lai dau vong lap de xu ly tiep o huong moi
+        } else if (elevator.currentDir == XUONG && !needToGoDown) {
+            elevator.currentDir = LEN;
+            cout << "\n  ============================================================";
+            cout << "\n  [!] THANG MAY DOI HUONG: [ LEN ^ ] tai TANG " << elevator.currentFloor << " (Do khong con ai phia duoi)";
+            cout << "\n  ============================================================\n";
+            // Gop pendingUp vao upQueue
+            while (!pendingUp.isEmpty()) upQueue.push(pendingUp.pop());
+            continue; // Quay lai dau vong lap de xu ly tiep o huong moi
         }
 
         // 5. Di chuyen
@@ -152,7 +166,7 @@ void ElevatorSystem::processRequests()
     }
 
     elevator.currentDir = DUNG_YEN;
-    cout << "\n  *** Da xu ly xong TAT CA yeu cau bang thuat toan SCAN/LOOK! ***\n";
+    cout << "\n  *** Da xu ly xong tat ca yeu cau bang thuat toan LOOK! ***\n";
 }
 
 void ElevatorSystem::displayStatus()

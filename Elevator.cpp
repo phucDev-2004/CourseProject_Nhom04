@@ -18,10 +18,6 @@ bool Elevator::checkWeight(int weight)
 {
     if (this->currentWeight + weight > this->maxCapacity)
     {
-        cout << "  [!!!] CANH BAO QUA TAI! "
-             << "Hien tai: " << currentWeight << " kg + "
-             << weight << " kg = " << (currentWeight + weight)
-             << " kg > Toi da: " << maxCapacity << " kg. Tu choi don khach!\n";
         return false;
     }
     return true;
