@@ -16,5 +16,4 @@ public:
     void displayDropOffList();
     void processRequests();
     void displayStatus();
-    int calculatePriority(Elevator &e, Request req);
 };
