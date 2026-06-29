@@ -64,112 +64,120 @@ bool loadFile(const string &filename,
 }
 
 
-void runFromFile(const string &filename)
+void runInteractive()
 {
-    const int MAX_REQ = 100;
-    Request requests[MAX_REQ];
-    int maxCapacity = 0, initFloor = 1, count = 0;
+    ElevatorSystem* sys = new ElevatorSystem(1000, 1);
+    int maxCapacity = 1000;
+    int initFloor = 1;
 
-    cout << "\n  Dang doc file: " << filename << "\n";
-
-    if (!loadFile(filename, maxCapacity, initFloor, requests, count))
-        return;
-
-    cout << "  Doc file thanh cong!\n";
-
-    printTitle("THONG TIN DU LIEU DAU VAO");
-    cout << "  File          : " << filename << "\n";
-    cout << "  Tai trong max : " << maxCapacity << " kg\n";
-    cout << "  Tang ban dau  : " << initFloor << "\n";
-    cout << "  So yeu cau    : " << count << "\n\n";
-
-    cout << "  DANH SACH YEU CAU:\n";
-    printLine('-', 60);
-    cout << "  ID  | Tang goi | Tang den | Can nang | Huong\n";
-    printLine('-', 60);
-    for (int i = 0; i < count; i++)
+    while (true)
     {
-        string huongStr = (requests[i].huong == LEN) ? "LEN [^]" : "XUONG [v]";
-        cout << "  " << requests[i].id
-             << "   |    " << requests[i].tangGoi
-             << "      |    " << requests[i].tangDen
-             << "      |  " << requests[i].canNang << " kg"
-             << "    | " << huongStr << "\n";
+        cout << "\n";
+        printTitle("HE THONG QUAN LY THANG MAY - MENU TUY CHON");
+        cout << "  [1] Khoi tao lai thang may (Tai trong, tang hien tai)\n";
+        cout << "  [2] Doc du lieu tu file\n";
+        cout << "  [3] Them yeu cau thu cong\n";
+        cout << "  [4] Xem danh sach yeu cau (Hang doi)\n";
+        cout << "  [5] Xem trang thai thang may hien tai\n";
+        cout << "  [6] Xu ly tat ca cac yeu cau\n";
+        cout << "  [7] Xem danh sach khach da duoc tra\n";
+        cout << "  [0] Thoat chuong trinh\n";
+        printLine('-', 60);
+        cout << "  Nhap lua chon cua ban: ";
+        
+        int choice;
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            cout << "  Nhap tai trong toi da (kg): ";
+            cin >> maxCapacity;
+            cout << "  Nhap tang ban dau: ";
+            cin >> initFloor;
+            delete sys;
+            sys = new ElevatorSystem(maxCapacity, initFloor);
+            cout << "  => Khoi tao thang may thanh cong!\n";
+            break;
+        case 2:
+        {
+            cout << "  CHON FILE DU LIEU:\n";
+            cout << "    [1] TestData_04.txt\n";
+            cout << "    [2] DemoData_04.txt\n";
+            cout << "    [3] Nhap ten file khac\n";
+            cout << "  Lua chon: ";
+            int fChoice;
+            cin >> fChoice;
+            string filename = "";
+            if (fChoice == 1) filename = "TestData_04.txt";
+            else if (fChoice == 2) filename = "DemoData_04.txt";
+            else if (fChoice == 3) {
+                cout << "  Nhap ten file: ";
+                cin >> filename;
+            } else {
+                cout << "  Lua chon khong hop le.\n";
+                break;
+            }
+
+            const int MAX_REQ = 100;
+            Request requests[MAX_REQ];
+            int count = 0;
+            
+            if (loadFile(filename, maxCapacity, initFloor, requests, count)) {
+                delete sys;
+                sys = new ElevatorSystem(maxCapacity, initFloor);
+                
+                for (int i = 0; i < count; i++) {
+                    sys->addRequest(requests[i]);
+                }
+                cout << "  => Doc file thanh cong! Da them " << count << " yeu cau vao hang doi.\n";
+            }
+            break;
+        }
+        case 3:
+        {
+            int id, tangGoi, tangDen, canNang;
+            cout << "  Nhap ID khach: "; cin >> id;
+            cout << "  Nhap tang goi: "; cin >> tangGoi;
+            cout << "  Nhap tang den: "; cin >> tangDen;
+            cout << "  Nhap can nang: "; cin >> canNang;
+            
+            sys->addRequest(Request(id, tangGoi, tangDen, canNang));
+            cout << "  => Da them yeu cau vao hang doi.\n";
+            break;
+        }
+        case 4:
+            cout << "\n";
+            sys->displayQueue();
+            break;
+        case 5:
+            cout << "\n";
+            sys->displayStatus();
+            break;
+        case 6:
+            cout << "\n";
+            sys->processRequests();
+            break;
+        case 7:
+            cout << "\n";
+            sys->displayDropOffList();
+            break;
+        case 0:
+            cout << "\n  Da thoat chuong trinh.\n";
+            delete sys;
+            return;
+        default:
+            cout << "  Lua chon khong hop le!\n";
+        }
     }
-    printLine('-', 60);
-
-    ElevatorSystem sys(maxCapacity, initFloor);
-
-    cout << "\n  [1] THEM YEU CAU VAO HANG DOI UU TIEN (UpQueue & DownQueue):\n";
-    printLine('-', 60);
-    for (int i = 0; i < count; i++)
-    {
-        sys.addRequest(requests[i]);
-    }
-
-    cout << "\n  [2] DANH SACH CHO THANG MAY (SAU KHI TINH UU TIEN):\n";
-    printLine('-', 60);
-    sys.displayQueue();
-
-    cout << "\n  [3] TRANG THAI BAN DAU CUA THANG MAY:\n";
-    sys.displayStatus();
-
-    cout << "\n  [ Nhan ENTER de bat dau xu ly... ]";
-    cin.ignore();
-    cin.get();
-
-    cout << "\n  [4] XU LY CAC YEU CAU THEO UU TIEN HANG DOI:\n";
-    printLine('-', 60);
-    sys.processRequests();
-
-    cout << "\n  [5] DANH SACH DIEM TRA KHACH SAU KHI HOAN THANH:\n";
-    printLine('-', 60);
-    sys.displayDropOffList();
-
-    cout << "\n  [6] TRANG THAI SAU KHI HOAN THANH:\n";
-    sys.displayStatus();
 }
 
 int main()
 {
-    // ---- Man hinh chao ----
-    printTitle("HE THONG QUAN LY THANG MAY - NHOM 04");
-    cout << "\n  CAU TRUC DU LIEU SU DUNG:\n";
-    cout << "    [1] LinkedList    - Luu hanh khach trong cabin thang may\n";
-    cout << "    [2] PriorityQueue - UpQueue (Min-Heap) & DownQueue (Max-Heap)\n\n";
-
-    // ---- Menu chon file ----
-    cout << "  CHON FILE DU LIEU:\n";
-    cout << "    [1] TestData_04.txt  (Du lieu kiem thu)\n";
-    cout << "    [2] DemoData_04.txt  (Du lieu demo)\n";
-    cout << "    [0] Thoat\n\n";
-
-    int choice = 0;
-    cout << "  Nhap lua chon (0/1/2): ";
-    cin >> choice;
-
-    string filename;
-    switch (choice)
-    {
-    case 1:
-        filename = "TestData_04.txt";
-        break;
-    case 2:
-        filename = "DemoData_04.txt";
-        break;
-    case 0:
-        cout << "\n  Da thoat chuong trinh.\n";
-        return 0;
-    default:
-        cout << "\n  Lua chon khong hop le!\n";
-        return 1;
-    }
-
-    runFromFile(filename);
-
-    printLine('=');
-    cout << "\n  Nhan ENTER de thoat...";
-    cin.ignore();
-    cin.get();
+    runInteractive();
     return 0;
 }
