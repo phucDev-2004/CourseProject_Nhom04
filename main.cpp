@@ -5,6 +5,7 @@
 #include "PriorityQueue.h"
 #include "Elevator.h"
 #include "ElevatorSystem.h"
+#include "Performance.h"
 
 using namespace std;
 
@@ -159,9 +160,38 @@ void runInteractive()
             sys->displayStatus();
             break;
         case 6:
+        {
             cout << "\n";
-            sys->processRequests();
+            printLine('=', 65);
+            cout << "  [HIEU NANG] BAT DAU CHAY THUAT TOAN & DO THOI GIAN THUC THI...\n";
+            printLine('=', 65);
+            
+            PerformanceTimer timer;
+            timer.start(); // Bắt đầu bấm giờ
+            
+            sys->processRequests(); // Thực thi thuật toán LOOK chính
+            
+            timer.stop();  // Dừng bấm giờ
+            
+            double durationMs = timer.getElapsedTimeMs();
+            double durationSec = timer.getElapsedTimeSec();
+            
+            cout << "\n";
+            printLine('=', 65);
+            cout << "              BAO CAO THONG SO HIEU NANG HE THONG\n";
+            printLine('-', 65);
+            cout << "  - Thuat toan mo phong: LOOK (Ket hop UpQueue & DownQueue)\n";
+            cout << "  - Trang thai xu ly  : Hoan tat tat ca cac yeu cau trong hang doi\n";
+            cout << "  - Thoi gian thuc thi: \n";
+            cout << "    + Tieu ton (mili-giay) : " << durationMs << " ms\n";
+            cout << "    + Tieu ton (giay)      : " << durationSec << " s\n";
+            cout << "  - Do chinh xac bo do : std::chrono (High Resolution Clock)\n";
+            printLine('=', 65);
+            cout << "\n";
             break;
+        }
+ 
+
         case 7:
             cout << "\n";
             sys->displayDropOffList();
