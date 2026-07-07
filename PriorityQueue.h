@@ -20,8 +20,8 @@ public:
 
     void push(Request req);
     Request pop();
-    Request top();    // Xem phan tu uu tien nhat (Khong xoa)
+    Request top(); // Xem phan tu uu tien nhat (Khong xoa)
     bool isEmpty();
-    void display();   // Hien thi danh sach cho thang
-    int size();       // So khach dang cho
+    void display(); // Hien thi danh sach cho thang
+    int size();     // So khach dang cho
 };

@@ -26,13 +26,16 @@ void PriorityQueue::heapifyUp(int index)
     if (index == 0)
         return;
     int parent = (index - 1) / 2;
-    if (isMinHeap) {
+    if (isMinHeap)
+    {
         if (heap[index].tangGoi < heap[parent].tangGoi)
         {
             swap(heap[index], heap[parent]);
             heapifyUp(parent);
         }
-    } else {
+    }
+    else
+    {
         if (heap[index].tangGoi > heap[parent].tangGoi)
         {
             swap(heap[index], heap[parent]);
@@ -48,12 +51,15 @@ void PriorityQueue::heapifyDown(int index)
     int left = 2 * index + 1;
     int right = 2 * index + 2;
 
-    if (isMinHeap) {
+    if (isMinHeap)
+    {
         if (left < currentSize && heap[left].tangGoi < heap[extreme].tangGoi)
             extreme = left;
         if (right < currentSize && heap[right].tangGoi < heap[extreme].tangGoi)
             extreme = right;
-    } else {
+    }
+    else
+    {
         if (left < currentSize && heap[left].tangGoi > heap[extreme].tangGoi)
             extreme = left;
         if (right < currentSize && heap[right].tangGoi > heap[extreme].tangGoi)
@@ -89,7 +95,8 @@ Request PriorityQueue::pop()
 
 Request PriorityQueue::top()
 {
-    if (isEmpty()) return Request(-1, -1, -1, 0);
+    if (isEmpty())
+        return Request(-1, -1, -1, 0);
     return heap[0];
 }
 
@@ -116,15 +123,19 @@ void PriorityQueue::display()
     for (int i = 0; i < currentSize; i++)
         temp[i] = heap[i];
     for (int i = 0; i < currentSize - 1; i++)
-        for (int j = i + 1; j < currentSize; j++) {
-            if (isMinHeap) {
+        for (int j = i + 1; j < currentSize; j++)
+        {
+            if (isMinHeap)
+            {
                 if (temp[j].tangGoi < temp[i].tangGoi)
                 {
                     Request t = temp[i];
                     temp[i] = temp[j];
                     temp[j] = t;
                 }
-            } else {
+            }
+            else
+            {
                 if (temp[j].tangGoi > temp[i].tangGoi)
                 {
                     Request t = temp[i];
